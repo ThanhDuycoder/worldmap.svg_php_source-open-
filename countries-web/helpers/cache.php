@@ -22,6 +22,14 @@ function cacheReadJson(string $path, int $ttlSeconds): ?array {
     return is_array($decoded) ? $decoded : null;
 }
 
+function cacheReadJsonAnyAge(string $path): ?array {
+    if (!is_file($path)) return null;
+    $raw = @file_get_contents($path);
+    if ($raw === false || trim($raw) === '') return null;
+    $decoded = json_decode($raw, true);
+    return is_array($decoded) ? $decoded : null;
+}
+
 function cacheWriteJson(string $path, array $data): void {
     cacheEnsureDir();
     $tmp = $path . '.tmp';

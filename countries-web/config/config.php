@@ -32,3 +32,15 @@ function restcountriesBaseUrl(): string {
     return rtrim(env('RESTCOUNTRIES_BASE_URL', RESTCOUNTRIES_BASE_URL) ?? RESTCOUNTRIES_BASE_URL, '/');
 }
 
+function geminiBaseUrl(): string {
+    return rtrim(env('GEMINI_BASE_URL', GEMINI_BASE_URL) ?? GEMINI_BASE_URL, '/');
+}
+
+function geminiModel(): string {
+    return trim(env('GEMINI_MODEL', GEMINI_MODEL) ?? GEMINI_MODEL);
+}
+
+function geminiApiKey(): string {
+    return trim(env('GEMINI_API_KEY', '') ?? '');
+}
+

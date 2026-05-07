@@ -33,7 +33,7 @@ function getCountryToken(el) {
 
 export function initWorldMap({ rootEl, onPickCountryName }) {
   const svg = rootEl.querySelector("svg");
-  if (!svg) throw new Error("SVG not found.");
+  if (!svg) throw new Error("Không tìm thấy SVG bản đồ.");
 
   const shapes = Array.from(svg.querySelectorAll("path, polygon, rect")).filter(isCountryShape);
   shapes.forEach((el) => el.classList.add("country-shape"));

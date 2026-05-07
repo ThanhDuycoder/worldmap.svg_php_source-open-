@@ -29,14 +29,22 @@ final class CountryService
             return $cached;
         }
 
-        $url = restcountriesBaseUrl() . '/all?fields=' . rawurlencode(RESTCOUNTRIES_ALL_FIELDS);
-        $data = $this->httpGetJson($url);
-        $countries = $this->normalizeCountries($data);
-        if (count($countries) === 0) {
-            throw new RuntimeException('RestCountries returned no usable country data.');
+        try {
+            $url = restcountriesBaseUrl() . '/all?fields=' . rawurlencode(RESTCOUNTRIES_ALL_FIELDS);
+            $data = $this->httpGetJson($url);
+            $countries = $this->normalizeCountries($data);
+            if (count($countries) === 0) {
+                throw new RuntimeException('RestCountries returned no usable country data.');
+            }
+            cacheWriteJson(COUNTRIES_CACHE_FILE, $countries);
+            return $countries;
+        } catch (Throwable $e) {
+            $stale = cacheReadJsonAnyAge(COUNTRIES_CACHE_FILE);
+            if (is_array($stale) && count($stale) > 0) {
+                return $stale;
+            }
+            throw $e;
         }
-        cacheWriteJson(COUNTRIES_CACHE_FILE, $countries);
-        return $countries;
     }
 
     /**
@@ -50,7 +58,16 @@ final class CountryService
         if (!preg_match('/^[A-Z]{2}$/', $code)) return null;
 
         $url = restcountriesBaseUrl() . '/alpha/' . rawurlencode($code) . '?fields=' . rawurlencode(RESTCOUNTRIES_ALPHA_FIELDS);
-        $data = $this->httpGetJson($url);
+        try {
+            $data = $this->httpGetJson($url);
+        } catch (Throwable $e) {
+            // Fallback: build a minimal detail object from cached /all data when upstream detail API is unavailable.
+            $fallback = $this->buildDetailFromListCache($code);
+            if ($fallback !== null) {
+                return $fallback;
+            }
+            throw $e;
+        }
 
         // alpha/{code} usually returns an array with one country
         if (array_is_list($data)) {
@@ -60,6 +77,37 @@ final class CountryService
 
         // Some proxies may return a direct object
         return $this->normalizeCountryDetail($data);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function buildDetailFromListCache(string $code): ?array
+    {
+        $all = $this->getAllCountries();
+        foreach ($all as $c) {
+            if (strtoupper((string)($c['cca2'] ?? '')) !== $code) {
+                continue;
+            }
+            return [
+                'name' => [
+                    'common' => (string)($c['name']['common'] ?? ''),
+                    'official' => (string)($c['name']['official'] ?? ''),
+                ],
+                'cca2' => (string)($c['cca2'] ?? ''),
+                'capital' => $c['capital'] ?? null,
+                'region' => $c['region'] ?? null,
+                'subregion' => $c['subregion'] ?? null,
+                'latlng' => null,
+                'population' => null,
+                'currencies' => [],
+                'languages' => [],
+                'flags' => ['png' => null, 'svg' => null, 'alt' => null],
+                'maps' => ['googleMaps' => null, 'openStreetMaps' => null],
+                'timezones' => [],
+            ];
+        }
+        return null;
     }
 
     /**
@@ -128,24 +176,48 @@ final class CountryService
      */
     private function httpGetJson(string $url): array
     {
-        $ctx = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'timeout' => 12,
-                'header' => "Accept: application/json\r\nUser-Agent: countries-web/1.0\r\n",
-            ],
-        ]);
+        $status = null;
+        $raw = null;
 
-        $raw = @file_get_contents($url, false, $ctx);
-        if ($raw === false) {
-            throw new RuntimeException('Cannot reach RestCountries API.');
+        // Prefer cURL for better TLS compatibility on Windows/XAMPP.
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 8,
+                CURLOPT_TIMEOUT => 15,
+                CURLOPT_HTTPHEADER => [
+                    'Accept: application/json',
+                    'User-Agent: countries-web/1.0',
+                ],
+            ]);
+            $response = curl_exec($ch);
+            if (is_string($response)) {
+                $raw = $response;
+                $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $status = is_int($statusCode) && $statusCode > 0 ? $statusCode : null;
+            }
+            curl_close($ch);
         }
 
-        // If server responded with a non-2xx status, avoid caching bad payloads.
-        $status = null;
-        if (isset($http_response_header) && is_array($http_response_header) && isset($http_response_header[0])) {
-            if (preg_match('/\s(\d{3})\s/', (string)$http_response_header[0], $m)) {
-                $status = (int)$m[1];
+        // Fallback when cURL is unavailable.
+        if (!is_string($raw) || $raw === '') {
+            $ctx = stream_context_create([
+                'http' => [
+                    'method' => 'GET',
+                    'timeout' => 12,
+                    'header' => "Accept: application/json\r\nUser-Agent: countries-web/1.0\r\n",
+                ],
+            ]);
+            $raw = @file_get_contents($url, false, $ctx);
+            if ($raw === false) {
+                throw new RuntimeException('Cannot reach RestCountries API. Check internet, TLS/SSL, or set RESTCOUNTRIES_BASE_URL in .env');
+            }
+
+            if (isset($http_response_header) && is_array($http_response_header) && isset($http_response_header[0])) {
+                if (preg_match('/\s(\d{3})\s/', (string)$http_response_header[0], $m)) {
+                    $status = (int)$m[1];
+                }
             }
         }
 

@@ -1,5 +1,6 @@
 import { CountriesApi } from "./api.js";
 import { initWorldMap } from "./map.js";
+import { initChatbot } from "./chatbot.js";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -18,7 +19,7 @@ const COUNTRY_ALIASES = new Map([
 function formatNumber(n) {
   const x = Number(n);
   if (!Number.isFinite(x)) return "—";
-  return x.toLocaleString(undefined);
+  return x.toLocaleString("vi-VN");
 }
 
 function asListText(list) {
@@ -48,7 +49,7 @@ function showInfoPanel(show) {
 }
 
 function renderCountryDetails(country) {
-  const name = country?.name?.common || "Unknown";
+  const name = country?.name?.common || "Không rõ";
   const official = country?.name?.official || "";
   const capital = country?.capital || "—";
   const currencies = Array.isArray(country?.currencies) ? country.currencies : [];
@@ -60,7 +61,7 @@ function renderCountryDetails(country) {
   const languages = Array.isArray(country?.languages) ? country.languages : [];
   const timezones = Array.isArray(country?.timezones) ? country.timezones : [];
   const flagUrl = country?.flags?.png || country?.flags?.svg || "";
-  const flagAlt = country?.flags?.alt || `${name} flag`;
+  const flagAlt = country?.flags?.alt || `Cờ ${name}`;
   const googleMaps = country?.maps?.googleMaps || "";
   const osm = country?.maps?.openStreetMaps || "";
 
@@ -78,15 +79,15 @@ function renderCountryDetails(country) {
         ${flagUrl ? `<img src="${escapeHtml(flagUrl)}" alt="${escapeHtml(flagAlt)}" style="width:56px;height:38px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.12)" />` : ""}
       </div>
       <div class="kv">
-        <div class="k">Code</div><div class="v">${escapeHtml(cca2)}</div>
-        <div class="k">Capital</div><div class="v">${escapeHtml(capital)}</div>
-        <div class="k">Region</div><div class="v">${escapeHtml(region)}${subregion !== "—" ? ` • ${escapeHtml(subregion)}` : ""}</div>
-        <div class="k">Lat/Lng</div><div class="v">${latlng ? `${escapeHtml(formatCoord(latlng[0], "lat"))}, ${escapeHtml(formatCoord(latlng[1], "lng"))}` : "—"}</div>
-        <div class="k">Population</div><div class="v">${escapeHtml(formatNumber(population))}</div>
-        <div class="k">Currency</div><div class="v">${escapeHtml(curText)}</div>
-        <div class="k">Languages</div><div class="v">${escapeHtml(asListText(languages))}</div>
-        <div class="k">Timezones</div><div class="v">${escapeHtml(asListText(timezones))}</div>
-        <div class="k">Maps</div>
+        <div class="k">Mã quốc gia</div><div class="v">${escapeHtml(cca2)}</div>
+        <div class="k">Thủ đô</div><div class="v">${escapeHtml(capital)}</div>
+        <div class="k">Khu vực</div><div class="v">${escapeHtml(region)}${subregion !== "—" ? ` • ${escapeHtml(subregion)}` : ""}</div>
+        <div class="k">Vĩ/kinh độ</div><div class="v">${latlng ? `${escapeHtml(formatCoord(latlng[0], "lat"))}, ${escapeHtml(formatCoord(latlng[1], "lng"))}` : "—"}</div>
+        <div class="k">Dân số</div><div class="v">${escapeHtml(formatNumber(population))}</div>
+        <div class="k">Tiền tệ</div><div class="v">${escapeHtml(curText)}</div>
+        <div class="k">Ngôn ngữ</div><div class="v">${escapeHtml(asListText(languages))}</div>
+        <div class="k">Múi giờ</div><div class="v">${escapeHtml(asListText(timezones))}</div>
+        <div class="k">Bản đồ</div>
         <div class="v">
           ${googleMaps ? `<a href="${escapeHtml(googleMaps)}" target="_blank" rel="noreferrer" style="color:inherit;text-decoration:underline">Google Maps</a>` : "—"}
           ${osm ? ` • <a href="${escapeHtml(osm)}" target="_blank" rel="noreferrer" style="color:inherit;text-decoration:underline">OpenStreetMap</a>` : ""}
@@ -132,7 +133,7 @@ async function pickCountryByCode(code, fallbackName = "") {
   const c = String(code || "").trim();
   if (!c) return;
   lastPicked = fallbackName || c;
-  setStatus(`Loading: ${fallbackName || c}...`);
+  setStatus(`Đang tải: ${fallbackName || c}...`);
   try {
     const detail = await CountriesApi.countryByCode(c);
     renderCountryDetails(detail);
@@ -140,7 +141,7 @@ async function pickCountryByCode(code, fallbackName = "") {
     setStatus("");
   } catch (e) {
     renderCountryDetails({ name: { common: fallbackName || c, official: "" } });
-    setStatus(e?.message || "Failed to load country.");
+    setStatus(e?.message || "Không thể tải thông tin quốc gia.");
   }
 }
 
@@ -149,7 +150,7 @@ async function pickCountryByName(name) {
   if (!n) return;
 
   lastPicked = n;
-  setStatus(`Loading: ${n}...`);
+  setStatus(`Đang tải: ${n}...`);
   try {
     const cca2 = findCca2ByName(n);
     if (cca2) {
@@ -162,7 +163,7 @@ async function pickCountryByName(name) {
     }
   } catch (e) {
     renderCountryDetails({ name: { common: n, official: "" } });
-    setStatus(e?.message || "Failed to load country.");
+    setStatus(e?.message || "Không thể tải thông tin quốc gia.");
   }
 }
 
@@ -173,9 +174,9 @@ function filterLocal(q) {
 }
 
 async function loadAll() {
-  setStatus("Loading countries list...");
+  setStatus("Đang tải danh sách quốc gia...");
   allCountries = await CountriesApi.all();
-  setStatus(`Loaded ${allCountries.length} countries.`);
+  setStatus(`Đã tải ${allCountries.length} quốc gia.`);
   window.setTimeout(() => setStatus(""), 1200);
 }
 
@@ -194,6 +195,10 @@ function setupMap() {
     rootEl: $("#mapRoot"),
     onPickCountryName: (name) => pickCountryByName(name),
   });
+}
+
+function setupChatbot() {
+  initChatbot();
 }
 
 function setupInfoPanelInteractions() {
@@ -226,12 +231,13 @@ function setupInfoPanelInteractions() {
 async function main() {
   setupMap();
   setupSearch();
+  setupChatbot();
   setupInfoPanelInteractions();
   await loadAll();
   showInfoPanel(false);
 }
 
 main().catch((e) => {
-  setStatus(e?.message || "App crashed.");
+  setStatus(e?.message || "Ứng dụng gặp lỗi.");
 });
 

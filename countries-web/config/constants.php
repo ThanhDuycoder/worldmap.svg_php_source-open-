@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 // External API
 const RESTCOUNTRIES_BASE_URL = 'https://restcountries.com/v3.1';
+const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
+const GEMINI_MODEL = 'gemini-1.5-flash-latest';
 // Minimal fields for list/search + mapping name -> cca2
 const RESTCOUNTRIES_ALL_FIELDS = 'name,cca2,capital,region,subregion';
 // Full detail fields (alpha/{code})
