@@ -133,5 +133,21 @@ if (!$user) {
     exit;
 }
 
+// Block banned users
+try {
+    $checkBan = $pdo->prepare('SELECT is_banned FROM users WHERE id = :id LIMIT 1');
+    $checkBan->execute(['id' => (int)$user['id']]);
+    $banRow = $checkBan->fetch();
+    $banned = is_array($banRow) ? ($banRow['is_banned'] ?? 0) : 0;
+    $isBanned = $banned === 1 || $banned === true || $banned === '1' || (is_numeric($banned) && (int)$banned === 1);
+    if ($isBanned) {
+        http_response_code(403);
+        echo 'Account is banned.';
+        exit;
+    }
+} catch (Throwable) {
+    // ignore
+}
+
 setAuthSession($user);
 redirect('../../../index.php');

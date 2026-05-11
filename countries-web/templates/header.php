@@ -25,6 +25,9 @@ $viewer = currentUser();
       <div class="authArea">
         <?php if ($viewer): ?>
           <span class="pill">Xin chào, <?= htmlspecialchars((string)$viewer['name']) ?></span>
+          <?php if (isAdmin($viewer)): ?>
+            <a class="authBtn" href="pages/admin/index.php">Admin</a>
+          <?php endif; ?>
           <a class="authBtn" href="api/auth/logout.php">Đăng xuất</a>
         <?php else: ?>
           <a class="authBtn" href="pages/auth/index.php">Đăng nhập / Đăng ký</a>

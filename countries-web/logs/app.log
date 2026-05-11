@@ -1,0 +1,7 @@
+{"ts":"2026-05-09T08:07:16+02:00","event":"gemini.chat.ok","ctx":{"q_len":6,"a_len":5265,"model":"gemini-2.5-flash"}}
+{"ts":"2026-05-10T23:39:12+02:00","event":"gemini.chat.ok","ctx":{"q_len":5,"a_len":6269,"model":"gemini-2.5-flash"}}
+{"ts":"2026-05-10T23:39:25+02:00","event":"gemini.chat.ok","ctx":{"q_len":4,"a_len":4930,"model":"gemini-2.5-flash"}}
+{"ts":"2026-05-10T23:39:53+02:00","event":"gemini.chat.ok","ctx":{"q_len":46,"a_len":852,"model":"gemini-2.5-flash"}}
+{"ts":"2026-05-10T23:43:28+02:00","event":"gemini.chat.ok","ctx":{"q_len":25,"a_len":6460,"model":"gemini-2.5-flash"}}
+{"ts":"2026-05-10T23:44:16+02:00","event":"gemini.chat.ok","ctx":{"q_len":47,"a_len":5602,"model":"gemini-2.5-flash"}}
+{"ts":"2026-05-10T23:54:01+02:00","event":"gemini.chat.ok","ctx":{"q_len":20,"a_len":5954,"model":"gemini-2.5-flash"}}

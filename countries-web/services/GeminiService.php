@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/prompts.php';
+require_once __DIR__ . '/../helpers/settings.php';
+require_once __DIR__ . '/../helpers/log.php';
 
 final class GeminiService
 {
@@ -18,7 +20,7 @@ final class GeminiService
             throw new RuntimeException('Thiếu GEMINI_API_KEY trong file .env.');
         }
 
-        $model = geminiModel();
+        $model = settingGet('gemini_model', geminiModel()) ?? geminiModel();
         if ($model === '') {
             $model = GEMINI_MODEL;
         }
@@ -42,12 +44,14 @@ final class GeminiService
                 ],
             ],
             'generationConfig' => [
-                'temperature' => 0.4,
-                'maxOutputTokens' => 500,
+                'temperature' => (float)(settingGet('gemini_temperature', '0.4') ?? '0.4'),
+                'maxOutputTokens' => (int)(settingGet('gemini_max_output_tokens', '4096') ?? '4096'),
             ],
         ];
 
-        return $this->httpPostGemini($url, $payload);
+        $text = $this->httpPostGemini($url, $payload);
+        appLog('gemini.chat.ok', ['q_len' => mb_strlen($question), 'a_len' => mb_strlen($text), 'model' => $model]);
+        return $text;
     }
 
     /**
@@ -117,7 +121,15 @@ final class GeminiService
             throw new RuntimeException($msg);
         }
 
-        $text = (string)($decoded['candidates'][0]['content']['parts'][0]['text'] ?? '');
+        $text = '';
+        $parts = $decoded['candidates'][0]['content']['parts'] ?? null;
+        if (is_array($parts)) {
+            foreach ($parts as $part) {
+                if (is_array($part) && isset($part['text']) && is_string($part['text'])) {
+                    $text .= $part['text'];
+                }
+            }
+        }
         $text = trim($text);
         if ($text === '') {
             throw new RuntimeException('Gemini không trả về nội dung.');

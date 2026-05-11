@@ -29,13 +29,14 @@ $viewer = currentUser();
           </div>
 
           <form id="loginForm" class="authForm">
-            <input type="email" name="email" placeholder="Email" required />
+            <input type="text" name="login" placeholder="Email hoặc tên đăng nhập" required />
             <input type="password" name="password" placeholder="Mật khẩu" required />
             <button class="authBtn" type="submit">Đăng nhập</button>
           </form>
 
           <form id="registerForm" class="authForm hidden">
             <input type="text" name="name" placeholder="Họ và tên" required />
+            <input type="text" name="username" placeholder="Tên đăng nhập (ví dụ: quocgia123)" required />
             <input type="email" name="email" placeholder="Email" required />
             <input type="password" name="password" placeholder="Mật khẩu (>= 6 ký tự)" required />
             <button class="authBtn" type="submit">Đăng ký</button>

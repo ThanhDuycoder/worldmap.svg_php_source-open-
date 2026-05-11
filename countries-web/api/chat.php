@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/../services/GeminiService.php';
+require_once __DIR__ . '/../helpers/log.php';
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     errorResponse('Phương thức không hợp lệ. Chỉ hỗ trợ POST.', 405);
@@ -35,6 +36,7 @@ try {
         'answer' => $answer,
     ]);
 } catch (Throwable $e) {
+    appLog('gemini.chat.error', ['message' => $e->getMessage()]);
     errorResponse($e->getMessage(), 502);
 }
 

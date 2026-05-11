@@ -238,6 +238,104 @@ body{
   color:var(--text);
   font-weight:600;
 }
+
+.adminTable{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  font-size:13px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+  background:rgba(8,18,38,.5);
+}
+.adminTable th,.adminTable td{
+  padding:10px 10px;
+  border-bottom:1px solid var(--line);
+  vertical-align:top;
+  white-space:nowrap;
+}
+.adminTable th{
+  text-align:left;
+  color:var(--muted);
+  font-weight:600;
+  background:rgba(255,255,255,.03);
+}
+.adminTable tbody tr:hover td{
+  background:rgba(122,162,255,.06);
+}
+.adminTable td:nth-child(2),
+.adminTable td:nth-child(3){
+  white-space:normal;
+  min-width:220px;
+}
+
+.adminTabs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.adminTab{
+  padding:9px 12px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.03);
+  color:var(--text);
+  cursor:pointer;
+}
+.adminTab.active{
+  background:rgba(122,162,255,.18);
+  border-color:rgba(122,162,255,.45);
+}
+.adminTab:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(122,162,255,.22);
+}
+.adminCards{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap:10px;
+}
+.adminCard{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px 12px;
+  background:rgba(8,18,38,.55);
+}
+.adminCard .k{color:var(--muted);font-size:12px;margin-bottom:6px}
+.adminCard .v{font-size:18px;font-weight:700}
+.adminForm{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:10px;
+}
+.adminForm input{
+  width:100%;
+  background:rgba(255,255,255,.04);
+  color:var(--text);
+  border:1px solid var(--line);
+  padding:10px 12px;
+  border-radius:12px;
+  outline:none;
+  margin-top:6px;
+}
+.adminForm input:focus{
+  border-color:rgba(122,162,255,.6);
+  box-shadow:0 0 0 3px rgba(122,162,255,.18);
+}
+.adminLog{
+  max-height:420px;
+  overflow:auto;
+  margin:0;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(8,18,38,.55);
+  white-space:pre-wrap;
+  font-size:12px;
+  line-height:1.4;
+}
 .footerDot{opacity:.65}
 
 .authWrap{max-width:760px}
